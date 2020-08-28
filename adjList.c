@@ -84,6 +84,55 @@ Graph readGraphFromFile(char* filePath){
 }
 
 /**
+ * Determine, if it exists, the cost of the edge that connects node o and d 
+ * g : graph
+ * o : origin node 
+ * d : destination node 
+ */
+int edgeWeight(Graph g, int o, int d, int* c){
+    int found = 0;
+    AdjList tmp;
+
+    for(tmp = g[o]; tmp && !found; tmp = tmp->adj)
+        if( tmp->dest == d ){
+            found = 1;
+            *c = tmp->cost;
+        }
+    return found;
+}
+
+/**
+ * Calculates the number of edges that have node 'o' as destination node 
+ * g : graph 
+ * o : node
+ */
+int inDegree(Graph g, int o){
+    AdjList tmp;
+    int found, c = 0;
+
+    for(int i = 0; i < NV; i++){
+        found = 0;
+        for(tmp = g[i]; tmp && !found; tmp = tmp->adj)
+            if( tmp->adj == o )
+                c++;
+    }
+    return c;
+}
+
+/**
+ * Calculates the number of edges that have node 'o' as source node
+ * g : graph 
+ * o : node 
+ */
+int outDegree(Graph g, int o){
+    int c = 0;
+
+    for(AdjList tmp = g[o]; tmp; c++, tmp = tmp->adj);
+
+    return c;
+}
+
+/**
  * Implementation of Depth First Search (DFS) algorithm 
  * Check if node d is reachable from o 
  * The algorithm is splited in two functions, one for initializing 
@@ -119,7 +168,7 @@ int dfs(Graph g, int o, int d){
 
 /** 
  * Find connected components
- * The algorithm uses DFS and colors to find the each component 
+ * The algorithm uses DFS and colors to find each component 
  */
 void dfsCompRec(Graph g, int o, int v[], int c[], int color){
     AdjList tmp;
@@ -148,6 +197,38 @@ void dfsComp(Graph g){
         printf("Node %d : %d\n", i, c[i]);
 }
 
+/**
+ * Implementation of Breadth First Search (BFS) algorithm.
+ * Check if node d is reachable from node o 
+ *
+ * g : graph 
+ * o : origin node 
+ * d : destination node 
+ *
+ */
+int bfs(Graph g, int o, int d){
+    int i = 0, j = 0, found = 0, node;
+    int q[NV], v[NV];
+    memset(v, 0, NV * sizeof(int));
+    AdjList tmp;
+
+    q[j++] = o;
+    
+    while( i < j ){
+        node = q[i++];
+        v[node] = 1;
+        if( node == d )
+            found = 1;
+        for(tmp = g[node]; tmp && !found; tmp = tmp->adj)
+            if( !v[tmp->dest] ){
+                q[j++] = tmp->dest;
+                v[tmp->dest] = 1;
+            }
+    }
+    return found;
+}
+
+
 int main(int argc, char** argv){
     Graph g = 0;
     AdjList tmp;
@@ -159,7 +240,8 @@ int main(int argc, char** argv){
         for(tmp = g[i]; tmp; tmp = tmp->adj)
             printf("(%d,%d,%d)\n",i,tmp->dest,tmp->cost);
     
-    dfsComp(g);
+    int found = bfs(g,6,0);
+    printf("Found? %d\n",found);
 
     return 0;
 }
